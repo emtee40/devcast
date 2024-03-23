@@ -61,7 +61,8 @@
     tag buffer is used to sort the pixels by tag as well as depth in order to support co-planar polygons.
 */
 
-#include <omp.h>
+#if 0
+// #include <omp.h>
 #include "hw/pvr/Renderer_if.h"
 #include "hw/pvr/pvr_mem.h"
 #include "oslib/oslib.h"
@@ -1030,3 +1031,4 @@ struct refrend : Renderer
 Renderer* rend_refred_base(u8* vram, function<RefRendInterface*()> createBackend) {
     return new refrend(vram, createBackend);
 }
+#endif

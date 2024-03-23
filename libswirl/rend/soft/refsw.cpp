@@ -8,6 +8,7 @@
 */
 #include "license/bsd"
 
+#if 0
 #include <cmath>
 #include <float.h>
 
@@ -333,4 +334,6 @@ Renderer* rend_refsw_debug(u8* vram) {
 }
 
 static auto refrend_debug = RegisterRendererBackend(rendererbackend_t{ "refsw-dbg", "RefSW Debug", 0, rend_refsw_debug });
+#endif
+
 #endif

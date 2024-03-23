@@ -10,6 +10,7 @@
 
 #include "refsw.h"
 
+#if 0
 #include <cmath>
 #include <cfloat>
 
@@ -553,3 +554,5 @@ struct RefPixelPipeline : PixelPipeline {
 PixelPipeline* Create_RefPixelPipeline() {
     return new RefPixelPipeline();
 }
+
+#endif

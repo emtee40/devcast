@@ -121,6 +121,9 @@ elseif(("${CMAKE_SYSTEM_PROCESSOR}" STREQUAL "AMD64") OR
 elseif("${CMAKE_SYSTEM_PROCESSOR}" MATCHES "aarch64")
   set(host_arch "arm64")
   set(HOST_CPU ${CPU_A64})
+elseif("${CMAKE_SYSTEM_PROCESSOR}" MATCHES "arm64")
+  set(host_arch "arm64")
+  set(HOST_CPU ${CPU_A64})
 #
 elseif("${CMAKE_SYSTEM_PROCESSOR}" MATCHES "arm")
   set(host_arch "arm")
@@ -148,9 +151,6 @@ else()
   set(HOST_CPU ${CPU_GENERIC})
 endif()
 
-
-
-
 string(TOLOWER ${CMAKE_SYSTEM_NAME} host_os)
 
 #message(" - testing cmake host_os: \"${host_os}\"")
@@ -170,9 +170,11 @@ elseif(CMAKE_HOST_WIN32)
 elseif(CMAKE_HOST_APPLE)
 
   if("${host_arch}" MATCHES "arm")
-    set(HOST_OS ${OS_IOS})
-    set(TARGET_IOS On)
-    add_definitions(-DTARGET_IPHONE -DTARGET_IOS)
+    set(HOST_OS ${OS_DARWIN})
+    # set(TARGET_IOS On)
+    # add_definitions(-DTARGET_IPHONE -DTARGET_IOS)
+    set(TARGET_OSX On)
+    add_definitions(-DTARGET_OSX)
   else()
     set(HOST_OS ${OS_DARWIN})  # todo ios check, check compiler/arch?
     set(TARGET_OSX On)
@@ -433,6 +435,7 @@ add_definitions(-DBUILD_COMPILER=${BUILD_COMPILER})
 add_definitions(-DFEAT_TA=${FEAT_TA})
 
 add_definitions(-DTARGET_NO_WEBUI)
+add_definitions(-DTARGET_NO_OPENMP)
 add_definitions(-DDEF_CONSOLE)
 
 

@@ -9,6 +9,7 @@
 // See https://github.com/skmp/nullDC-svn/commit/a6bfb450fd8e4db1731c33e99227004318fd52d6#commitcomment-121127862 for more details
 
 
+#if 0
 #include <omp.h>
 #include "hw/pvr/Renderer_if.h"
 #include "hw/pvr/pvr_mem.h"
@@ -831,4 +832,6 @@ Renderer* rend_slowsoftrend(u8* vram) {
 }
 
 static auto slowsoftrend = RegisterRendererBackend(rendererbackend_t{ "slow", "Slow Software Renderer", 0, rend_slowsoftrend });
+#endif
+
 #endif

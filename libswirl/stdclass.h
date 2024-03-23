@@ -20,7 +20,7 @@
 #undef PAGE_MASK
 #define PAGE_MASK (PAGE_SIZE-1)
 #else
-#define PAGE_SIZE 4096
+#define PAGE_SIZE 16384
 #undef PAGE_MASK
 #define PAGE_MASK (PAGE_SIZE-1)
 #endif

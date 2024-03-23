@@ -124,8 +124,7 @@ if(${FEAT_SHREC} EQUAL ${DYNAREC_JIT})
     list(APPEND core_SRCS ${d_core}/jit/backend/x64/rec_x64.cpp ${d_core}/jit/backend/x64/x64_regalloc.h)
 
   elseif(${HOST_CPU} EQUAL ${CPU_A64})
-    list(APPEND core_SRCS ${d_core}/rec-ARM64/rec_arm64.cpp ${d_core}/rec-ARM64/arm64_regalloc.h)
-
+    list(APPEND core_SRCS ${d_core}/jit/backend/arm64/rec_arm64.cpp ${d_core}/jit/backend/arm64/arm64_regalloc.h)
   else()
     message(" FEAT_SHREC==DYNAREC_JIT && HOST_CPU Unknown Default add arch or disable rec if not avail.")
 	error()
@@ -135,11 +134,12 @@ elseif(${FEAT_SHREC} EQUAL ${DYNAREC_CPP})
     list(APPEND core_SRCS ${d_core}/jit/backend/cpp/rec_cpp.cpp)
 endif()
 
-add_definitions(/DFEAT_HAS_SOFTREND=1)
+# add_definitions(/DFEAT_HAS_SOFTREND=1)
 
 if(${HOST_OS} EQUAL ${OS_LINUX})
   add_definitions(-DLUA_USE_LINUX)
 endif()
+# add_definitions(-DFEAT_NO_RWX_PAGES)
 
 ### deps.cmake #################################################################################
 
@@ -149,6 +149,7 @@ set(gpl_deps ${reicast_core_path}/gpl/deps)
 include_directories ("${d_deps}")
 include_directories ("${gpl_deps}/picotcp/include")
 include_directories ("${gpl_deps}/picotcp/modules")
+include_directories ("${d_deps}/vixl")
 
 file(GLOB xbyak_H	${d_deps}/xbyak/*.h)		# include headers into cmake target/project view 
 
@@ -165,6 +166,7 @@ file(GLOB lelf_SRCS  ${d_deps}/libelf/el*.cpp)
 file(GLOB crypt_SRCS ${d_deps}/crypto/*.cpp)
 file(GLOB imgui_SRCS ${d_deps}/imgui/*.cpp)
 file(GLOB lua_SRCS   ${d_deps}/lua/*.c)
+file(GLOB vixl_SRCS   ${d_deps}/vixl/aarch64/*.cc)
 
 file(GLOB picoModS   ${gpl_deps}/picotcp/modules/*.c)
 file(GLOB picoStkS   ${gpl_deps}/picotcp/stack/*.c)
@@ -183,6 +185,11 @@ set(deps_SRCS
   ${d_deps}/xxhash/xxhash.c
   ${d_deps}/cdipsr/cdipsr.cpp
   ${d_deps}/coreio/coreio.cpp
+  ${d_deps}/vixl/code-buffer-vixl.cc
+  ${d_deps}/vixl/cpu-features.cc
+  ${d_deps}/vixl/utils-vixl.cc
+  ${d_deps}/vixl/compiler-intrinsics-vixl.cc
+  ${vixl_SRCS}
   ${xbyak_H}
 )
   
@@ -265,7 +272,7 @@ elseif(${HOST_OS} EQUAL ${OS_DARWIN})
 
 else()
 
-  message("OS Unhandled")
+  message("OS ${HOST_OS} Unhandled")
   error()
 
 endif()
@@ -291,6 +298,9 @@ if (LIBRETRO_CORE)
 else()
   add_executable(${TNAME}${binSuffix} ${reicast_SRCS}) 
 endif()
+set_target_properties(${TNAME}${binSuffix} PROPERTIES
+    XCODE_ATTRIBUTE_CODE_SIGN_ENTITLEMENTS
+    "${CMAKE_CURRENT_LIST_DIR}/reicast.entitlements")
 
 target_compile_features(${TNAME}${binSuffix} PRIVATE cxx_std_14)
 
@@ -334,13 +344,20 @@ if(${HOST_OS} EQUAL ${OS_LINUX})
   endif()
   endif()
 
-  find_package(OpenMP)
-  if(OpenMP_FOUND)
-    target_link_libraries(${TNAME} OpenMP::OpenMP_CXX)
-  else()
-    target_compile_definitions(${TNAME} PUBLIC TARGET_NO_OPENMP)
-  endif()
 
+  # target_compile_definitions(${TNAME} TARGET_NO_OPENMP)
+
+  # find_package(OpenMP)
+  # if(OpenMP_FOUND)
+  #   target_link_libraries(${TNAME} OpenMP::OpenMP_CXX)
+  # else()
+  #   target_compile_definitions(${TNAME} PUBLIC TARGET_NO_OPENMP)
+  # endif()
+
+  # find_package(OpenMP)
+  # if(OpenMP_CXX_FOUND)
+  #   target_link_libraries(${TNAME}  PUBLIC OpenMP::OpenMP_CXX)
+  # endif()
   find_package(PkgConfig)
   if(PKG_CONFIG_FOUND)
     pkg_check_modules(AO ao)
@@ -402,9 +419,9 @@ if(${HOST_OS} EQUAL ${OS_DARWIN})
   target_compile_options(${TNAME} PRIVATE -fobjc-arc)
 
   # Enable OpenMP
-  target_compile_options(${TNAME} PRIVATE -Xpreprocessor -fopenmp)
-  target_link_libraries(${TNAME} "${d_osx}/../deps/libomp/lib/libomp.a")
-  target_include_directories(${TNAME} PRIVATE "${d_osx}/../deps/libomp/include")
+  # target_compile_options(${TNAME} PRIVATE -Xpreprocessor -fopenmp)
+  # target_link_libraries(${TNAME} "${d_osx}/../deps/libomp/lib/libomp.a")
+  # target_include_directories(${TNAME} PRIVATE "${d_osx}/../deps/libomp/include")
 
   # Include macOS *.hpp files
   target_include_directories(${TNAME} PRIVATE "${d_osx}")

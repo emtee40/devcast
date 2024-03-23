@@ -193,15 +193,17 @@ bool vmem_platform_prepare_jit_block(void *code_area, unsigned size, void **code
 		// Well it failed, use another approach, unmap the memory area and remap it back.
 		// Seems it works well on Darwin according to reicast code :P
 		munmap(code_area, size);
-		void *ret_ptr = mmap(code_area, size, PROT_READ | PROT_WRITE | PROT_EXEC, MAP_FIXED | MAP_PRIVATE | MAP_ANON, 0, 0);
+		void *ret_ptr = mmap(code_area, size, PROT_READ | PROT_WRITE | PROT_EXEC, MAP_JIT | MAP_PRIVATE | MAP_ANON, 0, 0);
 		// Ensure it's the area we requested
-		if (ret_ptr != code_area)
+		if (ret_ptr == MAP_FAILED)
 			return false;   // Couldn't remap it? Perhaps RWX is disabled? This should never happen in any supported Unix platform.
-	}
-
-	// Pointer location should be same:
-	*code_area_rwx = code_area;
-	return true;
+        *code_area_rwx = ret_ptr;
+    }else{
+        
+        // Pointer location should be same:
+        *code_area_rwx = code_area;
+    }
+    return true;
 }
 
 // Use two addr spaces: need to remap something twice, therefore use allocate_shared_filemem()
@@ -215,7 +217,7 @@ bool vmem_platform_prepare_jit_block(void *code_area, unsigned size, void **code
 
 	// Map the RX bits on the code_area, for proximity, as usual.
 	void *ptr_rx = mmap(code_area, size, PROT_READ | PROT_EXEC,
-	                    MAP_SHARED | MAP_NOSYNC | MAP_FIXED, shmem_fd2, 0);
+	                    MAP_SHARED | MAP_NOSYNC | MAP_FIXED | MAP_JIT, shmem_fd2, 0);
 	if (ptr_rx != code_area)
 		return false;
 
@@ -239,7 +241,7 @@ static void Arm64_CacheFlush(void* start, void* end) {
 	if (start == end)
 		return;
 
-#if HOST_OS == OS_DARWIN
+#if 0 && HOST_OS == OS_DARWIN
 	// Header file says this is equivalent to: sys_icache_invalidate(start, end - start);
 	sys_cache_control(kCacheFunctionPrepareForExecution, start, end - start);
 #else
