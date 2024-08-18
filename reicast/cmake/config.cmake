@@ -174,7 +174,7 @@ elseif(CMAKE_HOST_APPLE)
     # set(TARGET_IOS On)
     # add_definitions(-DTARGET_IPHONE -DTARGET_IOS)
     set(TARGET_OSX On)
-    add_definitions(-DTARGET_OSX)
+    add_definitions(-DTARGET_OSX -DTARGET_NO_EXCEPTIONS)
   else()
     set(HOST_OS ${OS_DARWIN})  # todo ios check, check compiler/arch?
     set(TARGET_OSX On)

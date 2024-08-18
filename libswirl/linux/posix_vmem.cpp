@@ -21,6 +21,7 @@
 
 #include "hw/mem/_vmem.h"
 #include "stdclass.h"
+#include <libkern/OSCacheControl.h>
 
 #ifndef MAP_NOSYNC
 #define MAP_NOSYNC       0 //missing from linux :/ -- could be the cause of android slowness ?
@@ -241,9 +242,9 @@ static void Arm64_CacheFlush(void* start, void* end) {
 	if (start == end)
 		return;
 
-#if 0 && HOST_OS == OS_DARWIN
+#if HOST_OS == OS_DARWIN
 	// Header file says this is equivalent to: sys_icache_invalidate(start, end - start);
-	sys_cache_control(kCacheFunctionPrepareForExecution, start, end - start);
+	sys_cache_control(kCacheFunctionPrepareForExecution, start, (unat)end - (unat)start);
 #else
 	// Don't rely on GCC's __clear_cache implementation, as it caches
 	// icache/dcache cache line sizes, that can vary between cores on

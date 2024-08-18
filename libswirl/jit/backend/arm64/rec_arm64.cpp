@@ -276,6 +276,7 @@ public:
 
 	void ngen_Compile(RuntimeBlockInfo* block, SmcCheckEnum smc_checks, bool reset, bool staging, bool optimise)
 	{
+		pthread_jit_write_protect_np(false);
 		//printf("REC-ARM64 compiling %08x\n", block->addr);
 #ifdef PROFILING
 		SaveFramePointer();
@@ -692,6 +693,7 @@ public:
 		RelinkBlock(block);
 
 		Finalize();
+		pthread_jit_write_protect_np(true);
 	}
 
 	void ngen_CC_Start(shil_opcode* op)
@@ -1384,12 +1386,15 @@ private:
 u32 DynaRBI::Relink()
 {
 	//printf("DynaRBI::Relink %08x\n", this->addr);
+
+	pthread_jit_write_protect_np(false);
 	Arm64Assembler *compiler = new Arm64Assembler((u8 *)this->code + this->relink_offset);
 
 	u32 code_size = compiler->RelinkBlock(this);
 	compiler->Finalize(true);
 	delete compiler;
 
+	pthread_jit_write_protect_np(true);
 	return code_size;
 }
 
@@ -1494,6 +1499,7 @@ struct Arm64NGenBackend: NGenBackend
 
 	bool Rewrite(rei_host_context_t* ctx)
 	{
+		pthread_jit_write_protect_np(false);
 		//printf("ngen_Rewrite pc %p\n", host_pc);
 		void *host_pc_rw = (void*)CC_RX2RW(ctx->pc);
 		RuntimeBlockInfo *block = bm_GetBlock((void*)ctx->pc);
@@ -1529,6 +1535,7 @@ struct Arm64NGenBackend: NGenBackend
 		delete assembler;
 		ctx->pc = (unat)CC_RW2RX(code_ptr - 2);
 
+		pthread_jit_write_protect_np(true);
 		return true;
 	}
 };

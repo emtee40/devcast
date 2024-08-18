@@ -28,16 +28,16 @@
 
 #if FEAT_SHREC != DYNAREC_NONE
 
-//u8 SH4_TCB[CODE_SIZE+16384]
-//#if HOST_OS == OS_WINDOWS || FEAT_SHREC != DYNAREC_JIT
-//	;
-//#elif HOST_OS == OS_LINUX
-//	__attribute__((section(".text")));
-//#elif HOST_OS==OS_DARWIN
-//	__attribute__((section("__TEXT,.text")));
-//#else
-//	#error SH4_TCB ALLOC
-//#endif
+u8 SH4_TCB[CODE_SIZE+16384]
+#if HOST_OS == OS_WINDOWS || FEAT_SHREC != DYNAREC_JIT
+	;
+#elif HOST_OS == OS_LINUX
+	__attribute__((section(".text")));
+#elif HOST_OS==OS_DARWIN
+	__attribute__((section("__TEXT,.text")));
+#else
+	#error SH4_TCB ALLOC
+#endif
 
 u8* CodeCache;
 uintptr_t cc_rx_offset;
@@ -506,14 +506,14 @@ struct recSH4 : SuperH4Backend {
         }
 
         // Prepare some pointer to the pre-allocated code cache:
-//        void* candidate_ptr = 0;(void*)(((unat)SH4_TCB + PAGE_MASK) & ~PAGE_MASK);
+        void* candidate_ptr = (void*)(((unat)SH4_TCB + PAGE_MASK) & ~PAGE_MASK);
 
         // Call the platform-specific magic to make the pages RWX
         CodeCache = NULL;
 #ifdef FEAT_NO_RWX_PAGES
         verify(vmem_platform_prepare_jit_block(candidate_ptr, CODE_SIZE, (void**)& CodeCache, &cc_rx_offset));
 #else
-        verify(vmem_platform_prepare_jit_block(0, CODE_SIZE, (void**)& CodeCache));
+        verify(vmem_platform_prepare_jit_block(candidate_ptr, CODE_SIZE, (void**)& CodeCache));
 #endif
         // Ensure the pointer returned is non-null
         verify(CodeCache != NULL);
