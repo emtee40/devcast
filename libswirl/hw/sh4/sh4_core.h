@@ -18,7 +18,7 @@
 #define dbr Sh4cntx.dbr
 #define vbr Sh4cntx.vbr
 #define mac Sh4cntx.mac
-#define pr Sh4cntx.pr
+#define pr Sh4cntx._pr
 #define fpul Sh4cntx.fpul
 #define next_pc Sh4cntx.pc
 #define curr_pc (next_pc-2)

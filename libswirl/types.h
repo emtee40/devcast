@@ -391,8 +391,8 @@ using namespace std;
 #include "stdclass.h"
 
 #ifndef RELEASE
-#define EMUERROR(format, ...) printf("Error in %20s:%s:%d: " format "\n", \
-		__FILE__, __FUNCTION__, __LINE__, ##__VA_ARGS__)
+#define EMUERROR(format, ...) printf("Error in %20s:%s:%d PC: 0x%08X PR: 0x%08X: " format "\n", \
+		__FILE__, __FUNCTION__, __LINE__, p_sh4rcb->cntx.pc, p_sh4rcb->cntx._pr, ##__VA_ARGS__)
 //strlen(__FILE__) <= 20 ? __FILE__ : __FILE__ + strlen(__FILE__) - 20,
 #else
 #define EMUERROR(format, ...)

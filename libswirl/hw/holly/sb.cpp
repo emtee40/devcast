@@ -82,6 +82,17 @@ struct SystemBus_impl final : SystemBus {
 		SB_REGN_32(reg_addr) = data;
 	}
 
+	template <u32 reg_addr>
+	void sbio_writeonly_gdrom_protection(u32 addr, u32 data)
+	{
+		auto sb = this;
+		// printf("Gdrom protection write, %08X\n", data);
+		// FILE *f = fopen("syscalls.bin", "wb");
+		// fwrite(sh4_cpu->mram.data, 64 * 1024, 1, f);
+		// fclose(f);
+		SB_REGN_32(reg_addr) = data;
+	}
+
 	u32 SB_FFST_read(u32 addr)
 	{
 		SB_FFST_rc++;
@@ -316,7 +327,7 @@ struct SystemBus_impl final : SystemBus {
 		RegisterRIO(this, SB_G1CRDYC_addr, RIO_WO_FUNC, 0, STATIC_FORWARD(SystemBus_impl, sbio_writeonly<SB_G1CRDYC_addr>));
 
 		//0x005F74B8    SB_GDAPRO   W   GD-DMA address range
-		RegisterRIO(this, SB_GDAPRO_addr, RIO_WO_FUNC, 0, STATIC_FORWARD(SystemBus_impl, sbio_writeonly<SB_GDAPRO_addr>));
+		RegisterRIO(this, SB_GDAPRO_addr, RIO_WO_FUNC, 0, STATIC_FORWARD(SystemBus_impl, sbio_writeonly_gdrom_protection<SB_GDAPRO_addr>));
 
 
 		//0x005F74F4    SB_GDSTARD  R   GD-DMA address count (on Root Bus)

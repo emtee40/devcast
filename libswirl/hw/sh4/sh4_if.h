@@ -326,7 +326,7 @@ struct Sh4Context
 			u32 r_bank[8];
 
 			u32 gbr,ssr,spc,sgr,dbr,vbr;
-			u32 pr,fpul;
+			u32 _pr,fpul;
 			u32 pc;
 
 			u32 jdyn;

@@ -419,6 +419,11 @@ struct SuperH4Mmr_impl final : SuperH4Mmr
 			{
 				return (T)sh4_rio_read<sz>(CCN, addr & 0xFF);
 			}
+			// TODO: implement the perf counters
+			else if (addr == 0x1f000084)
+			{
+				return 0;
+			}
 			else
 			{
 				EMUERROR2("Out of range on register index %x", addr);

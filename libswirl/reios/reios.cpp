@@ -447,7 +447,7 @@ void reios_setup_state(u32 boot_addr) {
 	sh4rcb.cntx.sgr = 0x8d000000;
 	sh4rcb.cntx.dbr = 0x8c000010;
 	sh4rcb.cntx.vbr = 0x8c000000;
-	sh4rcb.cntx.pr = 0xac00043c;
+	sh4rcb.cntx._pr = 0xac00043c;
 	sh4rcb.cntx.fpul = 0x00000000;
 	sh4rcb.cntx.pc = boot_addr;
 
@@ -568,7 +568,7 @@ void reios_setuo_naomi(u32 boot_addr) {
 	sh4rcb.cntx.sgr = 0x0cbfffb0;
 	sh4rcb.cntx.dbr = 0x00000fff;
 	sh4rcb.cntx.vbr = 0x0c000000;
-	sh4rcb.cntx.pr = 0xac0195ee;
+	sh4rcb.cntx._pr = 0xac0195ee;
 	sh4rcb.cntx.fpul = 0x000001e0;
 	sh4rcb.cntx.pc = boot_addr;
 
@@ -651,7 +651,7 @@ void register_hook(u32 pc, hook_fp* fn) {
 void DYNACALL reios_trap(u32 op) {
 	verify(op == REIOS_OPCODE);
 	u32 pc = sh4rcb.cntx.pc - 2;
-	sh4rcb.cntx.pc = sh4rcb.cntx.pr;
+	sh4rcb.cntx.pc = sh4rcb.cntx._pr;
 
 	u32 mapd = SYSCALL_ADDR_MAP(pc);
 
