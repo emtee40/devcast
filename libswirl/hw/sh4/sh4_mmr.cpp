@@ -981,11 +981,28 @@ void map_area7(SuperH4* sh4, u32 base)
 	}
 }
 
+template <u32 sz, class T>
+T DYNACALL Read_SQ(void* ctx, u32 addr) {
+	EMUERROR2("Unhandled SQ read [Store queue] 0x%x", addr);
+	for(;;);
+}
+
+template <u32 sz, class T>
+void DYNACALL Write_SQ(void* ctx, u32 addr, T data) {
+	if (sz != 4 && sz != 8) {
+		EMUERROR("Unhandled SQ write [Store queue] 0x%x = %x, sz=%d", addr, data, sz);
+		for(;;);
+	}
+
+	memcpy(&sq_both[addr&63], &data, sz);
+}
+
 //P4
 void map_p4(SuperH4* sh4, SuperH4Mmr* mmr)
 {
 	//P4 Region :
 	_vmem_handler p4_handler = _vmem_register_handler_Template(mmr, ReadMem_P4, WriteMem_P4);
+	_vmem_handler sq_handler = _vmem_register_handler_Template(mmr, Read_SQ, Write_SQ);
 
 	//register this before area7 and SQ , so they overwrite it and handle em :)
 	//default P4 handler
@@ -993,10 +1010,11 @@ void map_p4(SuperH4* sh4, SuperH4Mmr* mmr)
 	_vmem_map_handler(p4_handler, 0xE0, 0xFF);
 
 	//Store Queues -- Write only 32bit
-	_vmem_map_block(sq_both, 0xE0, 0xE0, 63);
-	_vmem_map_block(sq_both, 0xE1, 0xE1, 63);
-	_vmem_map_block(sq_both, 0xE2, 0xE2, 63);
-	_vmem_map_block(sq_both, 0xE3, 0xE3, 63);
+	// _vmem_map_block(sq_both, 0xE0, 0xE0, 63);
+	// _vmem_map_block(sq_both, 0xE1, 0xE1, 63);
+	// _vmem_map_block(sq_both, 0xE2, 0xE2, 63);
+	// _vmem_map_block(sq_both, 0xE3, 0xE3, 63);
+	_vmem_map_handler(sq_handler, 0xE0, 0xE3);
 
 	map_area7(sh4, 0xE0);
 }
