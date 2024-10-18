@@ -31,11 +31,11 @@
 	#include <linux/ashmem.h>
 	#ifndef ASHMEM_DEVICE
 	#define ASHMEM_DEVICE "/dev/ashmem"
-	#undef PAGE_MASK
-	#define PAGE_MASK (PAGE_SIZE-1)
+	#undef REI_PAGE_MASK
+	#define REI_PAGE_MASK (REI_PAGE_SIZE-1)
 #else
-	#define PAGE_SIZE 4096
-	#define PAGE_MASK (PAGE_SIZE-1)
+	#define REI_PAGE_SIZE 4096
+	#define REI_PAGE_MASK (REI_PAGE_SIZE-1)
 #endif
 
 // Android specific ashmem-device stuff for creating shared memory regions
@@ -55,7 +55,7 @@ int ashmem_create_region(const char *name, size_t size) {
 
 void VLockedMemory::LockRegion(unsigned offset, unsigned size_bytes) {
 	#ifndef TARGET_NO_EXCEPTIONS
-	size_t inpage = offset & PAGE_MASK;
+	size_t inpage = offset & REI_PAGE_MASK;
 	if (mprotect(&data[offset - inpage], size_bytes + inpage, PROT_READ)) {
 		die("mprotect failed ..\n");
 	}
@@ -64,7 +64,7 @@ void VLockedMemory::LockRegion(unsigned offset, unsigned size_bytes) {
 
 void VLockedMemory::UnLockRegion(unsigned offset, unsigned size_bytes) {
 	#ifndef TARGET_NO_EXCEPTIONS
-	size_t inpage = offset & PAGE_MASK;
+	size_t inpage = offset & REI_PAGE_MASK;
 	if (mprotect(&data[offset - inpage], size_bytes + inpage, PROT_READ|PROT_WRITE)) {
 		// Add some way to see why it failed? gdb> info proc mappings
 		die("mprotect  failed ..\n");

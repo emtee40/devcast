@@ -310,7 +310,7 @@ extern DECL_ALIGN(4) u32 SFaceOffsColor;
 //extern bool KillTex;
 //extern u32 detwiddle[2][8][1024];
 //maybe
-//extern vector<vram_block*> VramLocks[/*VRAM_SIZE*/(16*1024*1024)/PAGE_SIZE];
+//extern vector<vram_block*> VramLocks[/*VRAM_SIZE*/(16*1024*1024)/REI_PAGE_SIZE];
 //maybe - probably not - just a locking mechanism
 //extern cMutex vramlist_lock;
 

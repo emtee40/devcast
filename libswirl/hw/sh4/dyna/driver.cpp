@@ -506,7 +506,7 @@ struct recSH4 : SuperH4Backend {
         }
 
         // Prepare some pointer to the pre-allocated code cache:
-        void* candidate_ptr = (void*)(((unat)SH4_TCB + PAGE_MASK) & ~PAGE_MASK);
+        void* candidate_ptr = (void*)(((unat)SH4_TCB + REI_PAGE_MASK) & ~REI_PAGE_MASK);
 
         // Call the platform-specific magic to make the pages RWX
         CodeCache = NULL;

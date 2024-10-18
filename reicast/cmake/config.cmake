@@ -73,7 +73,7 @@ set(TA_LLE 0x60000002)
 # always on
 # option(HAS_TA_LLE "Use TA LLE" OFF)
 
-set(FEAT_TA ${TA_LLE})
+set(FEAT_TA ${TA_HLE})
 
 # if(HAS_TA_LLE)
 #   set(FEAT_TA ${TA_LLE})
@@ -174,7 +174,7 @@ elseif(CMAKE_HOST_APPLE)
     # set(TARGET_IOS On)
     # add_definitions(-DTARGET_IPHONE -DTARGET_IOS)
     set(TARGET_OSX On)
-    add_definitions(-DTARGET_OSX -DTARGET_NO_EXCEPTIONS)
+    add_definitions(-DTARGET_OSX)
   else()
     set(HOST_OS ${OS_DARWIN})  # todo ios check, check compiler/arch?
     set(TARGET_OSX On)

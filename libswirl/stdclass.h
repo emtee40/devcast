@@ -17,12 +17,12 @@
 #endif
 #ifdef _ANDROID
 #include <sys/mman.h>
-#undef PAGE_MASK
-#define PAGE_MASK (PAGE_SIZE-1)
+#undef REI_PAGE_MASK
+#define REI_PAGE_MASK (REI_PAGE_SIZE-1)
 #else
-#define PAGE_SIZE 16384
-#undef PAGE_MASK
-#define PAGE_MASK (PAGE_SIZE-1)
+#define REI_PAGE_SIZE 16384
+#undef REI_PAGE_MASK
+#define REI_PAGE_MASK (REI_PAGE_SIZE-1)
 #endif
 #if BUILD_COMPILER==COMPILER_CLANG
 #pragma clang diagnostic pop

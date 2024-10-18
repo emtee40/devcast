@@ -348,5 +348,5 @@ bool IsOnRam(u32 addr)
 u32 GetRamPageFromAddress(u32 RamAddress)
 {
 	verify(IsOnRam(RamAddress));
-	return (RamAddress & RAM_MASK)/PAGE_SIZE;
+	return (RamAddress & RAM_MASK)/REI_PAGE_SIZE;
 }
