@@ -648,6 +648,7 @@ struct refrend : Renderer
                     // clear the param buffer
                     backend->ClearParamBuffer(TAG_INVALID);
 
+                    int layers = 0;
                     do
                     {
                         // prepare for a new pass
@@ -667,7 +668,7 @@ struct refrend : Renderer
                         // render TAGS to ACCUM
                         // also marks TAGS as invalid, but keeps the index for coplanar sorting
                         backend->RenderParamTags(RM_TRANSLUCENT, rect.left, rect.top);
-                    } while (backend->GetPixelsDrawn() != 0);
+                    } while (backend->GetPixelsDrawn() != 0 && ++layers < 60);
                 }
 
                 // Copy to vram
