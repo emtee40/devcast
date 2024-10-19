@@ -462,7 +462,8 @@ void TextureCacheData::Update()
 					data[3] = decoded_colors[tex_type][tex_data[(x + 0) % w + (y + 0) % h * w]];
 				}
 			}
-
+			
+			#if DUMP_VQ_TABLES
 			if (tcw.VQ_Comp)
 			{
 				char temp[512];
@@ -480,6 +481,7 @@ void TextureCacheData::Update()
 					fclose(vi);
 				}
 			}
+			#endif
 #else
 			die("Soft rend disabled, invalid code path");
 		#endif

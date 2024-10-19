@@ -1050,9 +1050,15 @@ struct refrend : Renderer
     void ImGui_Impl_NewFrame();
     ImGui_Impl_NewFrame();
     ImGui::NewFrame();
-    ImGui::Begin("RefSW output");
-    ImGui::Image((ImTextureID)(intptr_t)image_texture, ImVec2(640 * 2, 480 * 2));
+    ImGui::SetNextWindowPos(ImVec2(0.0f, 0.0f));
+    ImGui::SetNextWindowSize(ImGui::GetIO().DisplaySize);
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, { 0, 0 });
+    ImGui::Begin("RefSW output", nullptr, ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoResize);
+    ImGui::Image((ImTextureID)(intptr_t)image_texture, ImGui::GetIO().DisplaySize);
     ImGui::End();
+    ImGui::PopStyleVar(3);
     ImGui::Render();
     ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
     os_gl_swap();
