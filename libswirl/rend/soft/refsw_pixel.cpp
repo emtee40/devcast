@@ -10,14 +10,9 @@
 
 #include "refsw.h"
 
-#if 0
 #include <cmath>
 #include <cfloat>
 
-#include <mmintrin.h>
-#include <xmmintrin.h>
-#include <emmintrin.h>
-#include <smmintrin.h>
 
 union mem128i {
     uint8_t m128i_u8[16];
@@ -554,5 +549,3 @@ struct RefPixelPipeline : PixelPipeline {
 PixelPipeline* Create_RefPixelPipeline() {
     return new RefPixelPipeline();
 }
-
-#endif
