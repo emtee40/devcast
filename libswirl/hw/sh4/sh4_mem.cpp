@@ -84,10 +84,11 @@ template<u32 sz, class T>
 T DYNACALL ReadMem_area4(void* ctx, u32 addr)
 {
 	verify(addr & (1<<25));
+	verify((addr & (sz-1)) == 0);
 	u32 index = (addr / 32) & 255;
 	u32 offset = addr & 31;
 
-	OIX_ADDR[index] = addr & ~31;
+	verify(OIX_ADDR[index] == (addr & ~31));
 
 	return *(T*)&OIX_CACHE[index][offset];
 }
@@ -96,11 +97,12 @@ template<u32 sz, class T>
 void DYNACALL WriteMem_area4(void* ctx, u32 addr,T data)
 {
 	verify(addr & (1<<25));
-
+	verify((addr & (sz-1)) == 0);
+	
 	u32 index = (addr / 32) & 255;
 	u32 offset = addr & 31;
 
-	OIX_ADDR[index] = addr & ~31;
+	verify(OIX_ADDR[index] == (addr & ~31));
 
 	*(T*)&OIX_CACHE[index][offset] = data;
 	OIX_DIRTY[index] = true;

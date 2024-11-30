@@ -1236,7 +1236,7 @@ sh4op(i0000_nnnn_1011_0011)
 		u32 index = (addr / 32) & 255;
 		verify(OIX_ADDR[index] == (addr & ~31));
 		if (OIX_DIRTY[index]) {
-			TAWriteSQ(OIX_ADDR[index],OIX_CACHE[index]);
+			TAWrite(OIX_ADDR[index],(u32*)OIX_CACHE[index], 1, sh4_cpu->vram.data);
 			OIX_DIRTY[index] = false;
 		}
 	}
