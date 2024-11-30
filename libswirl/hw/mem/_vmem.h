@@ -98,20 +98,20 @@ INLINE Trv DYNACALL _vmem_readt(u32 addr)
 		const u32 id = (u32)iirf;
 		if (sz == 1)
 		{
-			return (T)_vmem_RF8[id / 4](_vmem_CTX[id / 4], addr);
+			return (T)_vmem_RF8[id](_vmem_CTX[id], addr);
 		}
 		else if (sz == 2)
 		{
-			return (T)_vmem_RF16[id / 4](_vmem_CTX[id / 4], addr);
+			return (T)_vmem_RF16[id](_vmem_CTX[id], addr);
 		}
 		else if (sz == 4)
 		{
-			return _vmem_RF32[id / 4](_vmem_CTX[id / 4], addr);
+			return _vmem_RF32[id](_vmem_CTX[id], addr);
 		}
 		else if (sz == 8)
 		{
-			T rv = _vmem_RF32[id / 4](_vmem_CTX[id / 4], addr);
-			rv |= (T)((u64)_vmem_RF32[id / 4](_vmem_CTX[id / 4], addr + 4) << 32);
+			T rv = _vmem_RF32[id](_vmem_CTX[id], addr);
+			rv |= (T)((u64)_vmem_RF32[id](_vmem_CTX[id], addr + 4) << 32);
 
 			return rv;
 		}
@@ -142,20 +142,20 @@ INLINE void DYNACALL _vmem_writet(u32 addr, T data)
 		const u32 id = (u32)iirf;
 		if (sz == 1)
 		{
-			_vmem_WF8[id / 4](_vmem_CTX[id / 4], addr, data);
+			_vmem_WF8[id](_vmem_CTX[id], addr, data);
 		}
 		else if (sz == 2)
 		{
-			_vmem_WF16[id / 4](_vmem_CTX[id / 4], addr, data);
+			_vmem_WF16[id](_vmem_CTX[id], addr, data);
 		}
 		else if (sz == 4)
 		{
-			_vmem_WF32[id / 4](_vmem_CTX[id / 4], addr, data);
+			_vmem_WF32[id](_vmem_CTX[id], addr, data);
 		}
 		else if (sz == 8)
 		{
-			_vmem_WF32[id / 4](_vmem_CTX[id / 4], addr, (u32)data);
-			_vmem_WF32[id / 4](_vmem_CTX[id / 4], addr + 4, (u32)((u64)data >> 32));
+			_vmem_WF32[id](_vmem_CTX[id], addr, (u32)data);
+			_vmem_WF32[id](_vmem_CTX[id], addr + 4, (u32)((u64)data >> 32));
 		}
 		else
 		{

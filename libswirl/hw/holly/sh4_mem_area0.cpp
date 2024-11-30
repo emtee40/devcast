@@ -398,7 +398,6 @@ _vmem_handler area0_handler;
 
 void map_area0_init(SuperH4* sh4)
 {
-
 	area0_handler = _vmem_register_handler_Template(sh4, ReadMem_area0,WriteMem_area0);
 }
 void map_area0(SuperH4* sh4, u32 base)
