@@ -20,7 +20,11 @@
 #undef REI_PAGE_MASK
 #define REI_PAGE_MASK (REI_PAGE_SIZE-1)
 #else
+#if HOST_OS == OS_DARWIN
 #define REI_PAGE_SIZE 16384
+#else
+#define REI_PAGE_SIZE 4096
+#endif
 #undef REI_PAGE_MASK
 #define REI_PAGE_MASK (REI_PAGE_SIZE-1)
 #endif

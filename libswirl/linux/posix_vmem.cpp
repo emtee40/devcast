@@ -21,10 +21,16 @@
 
 #include "hw/mem/_vmem.h"
 #include "stdclass.h"
+#if HOST_OS == OS_DARWIN
 #include <libkern/OSCacheControl.h>
+#endif
 
 #ifndef MAP_NOSYNC
 #define MAP_NOSYNC       0 //missing from linux :/ -- could be the cause of android slowness ?
+#endif
+
+#ifndef MAP_JIT
+#define MAP_JIT 0
 #endif
 
 #ifdef _ANDROID
