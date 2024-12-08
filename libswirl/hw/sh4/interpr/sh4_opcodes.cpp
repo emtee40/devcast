@@ -64,6 +64,11 @@ void dofoo(sh4_opcode op)
 #define WriteMemBOU16(addr,offset,data) WriteMemU16(addr+offset,data)
 #define WriteMemBOU8(addr,offset,data)  WriteMemU8(addr+offset,data)
 
+// These are OIX mode hacks
+extern u8 OIX_CACHE[256][32];
+extern u32 OIX_ADDR[256];
+extern bool OIX_DIRTY[256];
+
 // 0xxx
 void cpu_iNimp(u32 op, const char* info)
 {
@@ -850,7 +855,20 @@ sh4op(i1110_nnnn_iiii_iiii)
 sh4op(i0000_nnnn_1100_0011)
 {
 	u32 n = GetN(op);
-	WriteMemU32(r[n],r[0]);//at r[n],r[0]
+	u32 addr = r[n];
+	u32 data = r[0];
+	if (addr & (1<<25)) {
+		verify((addr & 3) == 0);
+		u32 index = (addr / 32) & 255;
+		u32 offset = addr & 31;
+
+		OIX_ADDR[index] = addr & ~31;
+		memset(OIX_CACHE[index], 0, 32);
+		*(u32*)&OIX_CACHE[index][offset] = data;
+		OIX_DIRTY[index] = true;
+	} else {
+		WriteMemU32(r[n],r[0]);//at r[n],r[0]
+	}
 	//iWarn(op, "movca.l R0, @<REG_N>");
 }
 
@@ -1212,7 +1230,16 @@ sh4op(i0000_nnnn_1010_0011)
 //ocbwb @<REG_N>
 sh4op(i0000_nnnn_1011_0011)
 {
-	//u32 n = GetN(op);
+	u32 n = GetN(op);
+	u32 addr = r[n];
+	if (addr & (1<<25)) {
+		u32 index = (addr / 32) & 255;
+		verify(OIX_ADDR[index] == (addr & ~31));
+		if (OIX_DIRTY[index]) {
+			TAWrite(OIX_ADDR[index],(u32*)OIX_CACHE[index], 1, sh4_cpu->vram.data);
+			OIX_DIRTY[index] = false;
+		}
+	}
 	//printf("ocbwb @0x%08X \n",r[n]);
 }
 

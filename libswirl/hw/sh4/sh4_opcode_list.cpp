@@ -134,10 +134,10 @@ sh4_opcodelistentry opcodes[]=
 	//CPU
 	{dec_i0000_nnnn_0010_0011   ,i0000_nnnn_0010_0011   ,Mask_n         ,0x0023 ,Branch_rel_d   ,"braf <REG_N>"                         ,2,3,CO,fix_none},  //braf <REG_N>
 	{dec_i0000_nnnn_0000_0011   ,i0000_nnnn_0000_0011   ,Mask_n         ,0x0003 ,Branch_rel_d   ,"bsrf <REG_N>"                         ,2,3,CO,fix_none},  //bsrf <REG_N>
-	{0                          ,i0000_nnnn_1100_0011   ,Mask_n         ,0x00C3 ,Normal         ,"movca.l R0, @<REG_N>"                 ,2,4,MA,fix_none    ,dec_MWt(PRM_RN,PRM_R0,4)}, //movca.l R0, @<REG_N>
-	{dec_i0000_0000_0000_1001   ,i0000_nnnn_1001_0011   ,Mask_n         ,0x0093 ,Normal         ,"ocbi @<REG_N>"                        ,1,2,MA,fix_none},  //ocbi @<REG_N>
-	{dec_i0000_0000_0000_1001   ,i0000_nnnn_1010_0011   ,Mask_n         ,0x00A3 ,Normal         ,"ocbp @<REG_N>"                        ,1,2,MA,fix_none},  //ocbp @<REG_N>
-	{dec_i0000_0000_0000_1001   ,i0000_nnnn_1011_0011   ,Mask_n         ,0x00B3 ,Normal         ,"ocbwb @<REG_N>"                       ,1,2,MA,fix_none},  //ocbwb @<REG_N>
+	{0                          ,i0000_nnnn_1100_0011   ,Mask_n         ,0x00C3 ,Normal         ,"movca.l R0, @<REG_N>"                 ,2,4,MA,fix_none},  //movca.l R0, @<REG_N>
+	{0                          ,i0000_nnnn_1001_0011   ,Mask_n         ,0x0093 ,Normal         ,"ocbi @<REG_N>"                        ,1,2,MA,fix_none},  //ocbi @<REG_N>
+	{0                          ,i0000_nnnn_1010_0011   ,Mask_n         ,0x00A3 ,Normal         ,"ocbp @<REG_N>"                        ,1,2,MA,fix_none},  //ocbp @<REG_N>
+	{0                          ,i0000_nnnn_1011_0011   ,Mask_n         ,0x00B3 ,Normal         ,"ocbwb @<REG_N>"                       ,1,2,MA,fix_none},  //ocbwb @<REG_N>
 	{0                          ,i0000_nnnn_1000_0011   ,Mask_n         ,0x0083 ,Normal         ,"pref @<REG_N>"                        ,1,2,LS,fix_none    ,dec_Fill(DM_UnaryOp,PRM_RN,PRM_ONE,shop_pref,1)},  //pref @<REG_N>
 	{0                          ,i0000_nnnn_mmmm_0111   ,Mask_n_m       ,0x0007 ,Normal         ,"mul.l <REG_M>,<REG_N>"                ,2,4,CO,fix_none    ,dec_mul(-32)}, //mul.l <REG_M>,<REG_N>
 	{0                          ,i0000_0000_0010_1000   ,Mask_none      ,0x0028 ,Normal   | R_SP,"clrmac"                               ,1,3,LS,fix_none},  //clrmac

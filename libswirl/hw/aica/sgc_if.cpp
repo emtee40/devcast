@@ -507,7 +507,7 @@ struct ChannelEx
 
 			StepStreamInitial(this);
 
-			key_printf("[%d] KEY_ON %s @ %f Hz, loop : %d\n",Channel,stream_names[ChanData->PCMS],(44100.0*update_rate)/1024,ChanData->LPCTL);
+			key_printf("[%d] KEY_ON %s @ %f Hz, loop : %d\n",-1,stream_names[ccd->PCMS],(44100.0*update_rate)/1024,ccd->LPCTL); //fixme channel number
 		}
 		else
 		{
@@ -518,7 +518,7 @@ struct ChannelEx
 	{
 		if (AEG.state!=EG_Release)
 		{
-			key_printf("[%d] KEY_OFF -> Release\n",Channel);
+			key_printf("[%d] KEY_OFF -> Release\n",-1); // fixme channel number
 			SetAegState(EG_Release);
 			//switch to release state
 		}

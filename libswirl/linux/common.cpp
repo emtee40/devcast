@@ -225,7 +225,7 @@ static sigaction_fn* get_sigaction()
 static void install_fault_handler(void)
 {
 	// initialize trap state
-	trap_ptr_fault = (u8*)mmap(0, PAGE_SIZE, PROT_NONE, MAP_PRIVATE | MAP_ANONYMOUS, 0, 0);
+	trap_ptr_fault = (u8*)mmap(0, REI_PAGE_SIZE, PROT_NONE, MAP_PRIVATE | MAP_ANONYMOUS, 0, 0);
     trap_ptr_stack = (u8*)mmap(0, TRAP_STACK_SIZE, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS, 0, 0);
     trap_ptr_stack_top = trap_ptr_stack + TRAP_STACK_SIZE - 128;
 
@@ -330,10 +330,10 @@ void common_linux_setup()
 	
 	settings.profile.run_counts=0;
 	
-	printf("Linux paging: %ld %08X %08X\n",sysconf(_SC_PAGESIZE),PAGE_SIZE,PAGE_MASK);
+	printf("Linux paging: %ld %08X %08X\n",sysconf(_SC_PAGESIZE),REI_PAGE_SIZE,REI_PAGE_MASK);
 
 #if !defined(TARGET_EMSCRIPTEN)
-	verify(PAGE_MASK==(sysconf(_SC_PAGESIZE)-1));
+	verify(REI_PAGE_MASK==(sysconf(_SC_PAGESIZE)-1));
 #endif
 }
 

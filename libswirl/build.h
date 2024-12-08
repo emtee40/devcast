@@ -325,8 +325,10 @@
 #ifndef FEAT_HAS_SOFTREND
 	// TODO: Test with Clang on other platforms, currently enabled for macOS only or it breaks the Android build, but may work fine on desktop Linux
 	//GCC wants us to enable sse4 globaly to enable intrins
-	#define FEAT_HAS_SOFTREND (BUILD_COMPILER == COMPILER_VC) || (BUILD_COMPILER == COMPILER_CLANG && HOST_OS == OS_DARWIN)
+	//#define FEAT_HAS_SOFTREND (BUILD_COMPILER == COMPILER_VC) || (BUILD_COMPILER == COMPILER_CLANG && HOST_OS == OS_DARWIN)
+	#define FEAT_HAS_SOFTREND 1
 #endif
+
 
 #ifndef FEAT_HAS_SERIAL_TTY
     #if (HOST_OS == OS_LINUX && !defined(_ANDROID)) || (HOST_OS == OS_DARWIN && !TARGET_OS_IPHONE && !TARGET_IPHONE_SIMULATOR)

@@ -76,15 +76,50 @@ void map_area3(SuperH4* sh4, u32 base)
 #pragma clang diagnostic pop
 #endif
 
-//AREA 4
-void map_area4_init()
+u8 OIX_CACHE[256][32];
+u32 OIX_ADDR[256];
+bool OIX_DIRTY[256];
+
+template<u32 sz, class T>
+T DYNACALL ReadMem_area4(void* ctx, u32 addr)
 {
+	verify(addr & (1<<25));
+	verify((addr & (sz-1)) == 0);
+	u32 index = (addr / 32) & 255;
+	u32 offset = addr & 31;
+
+	verify(OIX_ADDR[index] == (addr & ~31));
+
+	return *(T*)&OIX_CACHE[index][offset];
+}
+
+template<u32 sz, class T>
+void DYNACALL WriteMem_area4(void* ctx, u32 addr,T data)
+{
+	verify(addr & (1<<25));
+	verify((addr & (sz-1)) == 0);
 	
+	u32 index = (addr / 32) & 255;
+	u32 offset = addr & 31;
+
+	verify(OIX_ADDR[index] == (addr & ~31));
+
+	*(T*)&OIX_CACHE[index][offset] = data;
+	OIX_DIRTY[index] = true;
+}
+
+_vmem_handler area4_handler;
+
+//AREA 4
+//Map for OIX mode
+void map_area4_init(SuperH4* sh4)
+{
+	area4_handler = _vmem_register_handler_Template(sh4, ReadMem_area4,WriteMem_area4);
 }
 
 void map_area4(SuperH4* sh4, u32 base)
 {
-	//TODO : map later
+	_vmem_map_handler(area4_handler,0x10|base,0x11|base);
 
 	//upper 32mb mirror lower 32 mb
 	_vmem_mirror_mapping(0x12|base,0x10|base,0x02);
@@ -165,7 +200,7 @@ void mem_map_default(SuperH4* sh4)
 	map_area1_init(sh4);
 	map_area2_init();
 	map_area3_init();
-	map_area4_init();
+	map_area4_init(sh4);
 	map_area5_init();
 	map_area6_init();
 	map_area7_init(sh4->sh4mmr.get());
@@ -348,5 +383,5 @@ bool IsOnRam(u32 addr)
 u32 GetRamPageFromAddress(u32 RamAddress)
 {
 	verify(IsOnRam(RamAddress));
-	return (RamAddress & RAM_MASK)/PAGE_SIZE;
+	return (RamAddress & RAM_MASK)/REI_PAGE_SIZE;
 }

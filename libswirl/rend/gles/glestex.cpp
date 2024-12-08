@@ -46,10 +46,6 @@ Compression
 #define GL_UNSIGNED_BYTE 3
 #endif
 
-#if FEAT_HAS_SOFTREND
-	#include <xmmintrin.h>
-#endif
-
 extern u32 decoded_colors[3][65536];
 
 struct PvrTexInfo
@@ -278,7 +274,7 @@ void TextureCacheData::Create(bool isGL)
 		verify(!isGL);
 	#endif
 		#if FEAT_HAS_SOFTREND
-			pData = (u16*)_mm_malloc(w * h * 16, 16);
+			pData = (u16*)aligned_alloc(16, w * h * 16);
 		#else
 			die("softrend disabled, invalid codepath");
 		#endif
@@ -466,7 +462,8 @@ void TextureCacheData::Update()
 					data[3] = decoded_colors[tex_type][tex_data[(x + 0) % w + (y + 0) % h * w]];
 				}
 			}
-
+			
+			#if DUMP_VQ_TABLES
 			if (tcw.VQ_Comp)
 			{
 				char temp[512];
@@ -484,6 +481,7 @@ void TextureCacheData::Update()
 					fclose(vi);
 				}
 			}
+			#endif
 #else
 			die("Soft rend disabled, invalid code path");
 		#endif
@@ -527,7 +525,7 @@ bool TextureCacheData::Delete()
 	
 	if (pData) {
 		#if FEAT_HAS_SOFTREND
-			_mm_free(pData);
+			free(pData);
 			pData = 0;
 		#else
 			die("softrend disabled, invalid codepath");

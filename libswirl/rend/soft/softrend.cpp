@@ -4,7 +4,7 @@
 #include "license/bsd"
 
 
-#include <omp.h>
+// #include <omp.h>
 #include "build.h"
 #include "hw/pvr/Renderer_if.h"
 #include "hw/pvr/pvr_mem.h"
@@ -21,6 +21,7 @@
 	processing. All of the pipeline is based on quads.
 */
 
+#if 0
 #include <mmintrin.h>
 #include <xmmintrin.h>
 #include <emmintrin.h>
@@ -1274,4 +1275,5 @@ Renderer* rend_softrend(u8* vram) {
 }
 
 static auto softrend = RegisterRendererBackend(rendererbackend_t{ "soft", "Fast Software Renderer", 0, rend_softrend });
+#endif
 #endif

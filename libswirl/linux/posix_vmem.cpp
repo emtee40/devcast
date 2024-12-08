@@ -21,20 +21,27 @@
 
 #include "hw/mem/_vmem.h"
 #include "stdclass.h"
+#if HOST_OS == OS_DARWIN
+#include <libkern/OSCacheControl.h>
+#endif
 
 #ifndef MAP_NOSYNC
 #define MAP_NOSYNC       0 //missing from linux :/ -- could be the cause of android slowness ?
+#endif
+
+#ifndef MAP_JIT
+#define MAP_JIT 0
 #endif
 
 #ifdef _ANDROID
 	#include <linux/ashmem.h>
 	#ifndef ASHMEM_DEVICE
 	#define ASHMEM_DEVICE "/dev/ashmem"
-	#undef PAGE_MASK
-	#define PAGE_MASK (PAGE_SIZE-1)
+	#undef REI_PAGE_MASK
+	#define REI_PAGE_MASK (REI_PAGE_SIZE-1)
 #else
-	#define PAGE_SIZE 4096
-	#define PAGE_MASK (PAGE_SIZE-1)
+	#define REI_PAGE_SIZE 4096
+	#define REI_PAGE_MASK (REI_PAGE_SIZE-1)
 #endif
 
 // Android specific ashmem-device stuff for creating shared memory regions
@@ -54,7 +61,7 @@ int ashmem_create_region(const char *name, size_t size) {
 
 void VLockedMemory::LockRegion(unsigned offset, unsigned size_bytes) {
 	#ifndef TARGET_NO_EXCEPTIONS
-	size_t inpage = offset & PAGE_MASK;
+	size_t inpage = offset & REI_PAGE_MASK;
 	if (mprotect(&data[offset - inpage], size_bytes + inpage, PROT_READ)) {
 		die("mprotect failed ..\n");
 	}
@@ -63,7 +70,7 @@ void VLockedMemory::LockRegion(unsigned offset, unsigned size_bytes) {
 
 void VLockedMemory::UnLockRegion(unsigned offset, unsigned size_bytes) {
 	#ifndef TARGET_NO_EXCEPTIONS
-	size_t inpage = offset & PAGE_MASK;
+	size_t inpage = offset & REI_PAGE_MASK;
 	if (mprotect(&data[offset - inpage], size_bytes + inpage, PROT_READ|PROT_WRITE)) {
 		// Add some way to see why it failed? gdb> info proc mappings
 		die("mprotect  failed ..\n");
@@ -193,15 +200,17 @@ bool vmem_platform_prepare_jit_block(void *code_area, unsigned size, void **code
 		// Well it failed, use another approach, unmap the memory area and remap it back.
 		// Seems it works well on Darwin according to reicast code :P
 		munmap(code_area, size);
-		void *ret_ptr = mmap(code_area, size, PROT_READ | PROT_WRITE | PROT_EXEC, MAP_FIXED | MAP_PRIVATE | MAP_ANON, 0, 0);
+		void *ret_ptr = mmap(code_area, size, PROT_READ | PROT_WRITE | PROT_EXEC, MAP_JIT | MAP_PRIVATE | MAP_ANON, 0, 0);
 		// Ensure it's the area we requested
-		if (ret_ptr != code_area)
+		if (ret_ptr == MAP_FAILED)
 			return false;   // Couldn't remap it? Perhaps RWX is disabled? This should never happen in any supported Unix platform.
-	}
-
-	// Pointer location should be same:
-	*code_area_rwx = code_area;
-	return true;
+        *code_area_rwx = ret_ptr;
+    }else{
+        
+        // Pointer location should be same:
+        *code_area_rwx = code_area;
+    }
+    return true;
 }
 
 // Use two addr spaces: need to remap something twice, therefore use allocate_shared_filemem()
@@ -215,7 +224,7 @@ bool vmem_platform_prepare_jit_block(void *code_area, unsigned size, void **code
 
 	// Map the RX bits on the code_area, for proximity, as usual.
 	void *ptr_rx = mmap(code_area, size, PROT_READ | PROT_EXEC,
-	                    MAP_SHARED | MAP_NOSYNC | MAP_FIXED, shmem_fd2, 0);
+	                    MAP_SHARED | MAP_NOSYNC | MAP_FIXED | MAP_JIT, shmem_fd2, 0);
 	if (ptr_rx != code_area)
 		return false;
 
@@ -241,7 +250,7 @@ static void Arm64_CacheFlush(void* start, void* end) {
 
 #if HOST_OS == OS_DARWIN
 	// Header file says this is equivalent to: sys_icache_invalidate(start, end - start);
-	sys_cache_control(kCacheFunctionPrepareForExecution, start, end - start);
+	sys_cache_control(kCacheFunctionPrepareForExecution, start, (unat)end - (unat)start);
 #else
 	// Don't rely on GCC's __clear_cache implementation, as it caches
 	// icache/dcache cache line sizes, that can vary between cores on

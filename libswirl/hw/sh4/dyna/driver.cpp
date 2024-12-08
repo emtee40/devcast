@@ -28,7 +28,7 @@
 
 #if FEAT_SHREC != DYNAREC_NONE
 
-u8 SH4_TCB[CODE_SIZE+4096]
+u8 SH4_TCB[CODE_SIZE+16384]
 #if HOST_OS == OS_WINDOWS || FEAT_SHREC != DYNAREC_JIT
 	;
 #elif HOST_OS == OS_LINUX
@@ -506,7 +506,7 @@ struct recSH4 : SuperH4Backend {
         }
 
         // Prepare some pointer to the pre-allocated code cache:
-        void* candidate_ptr = (void*)(((unat)SH4_TCB + 4095) & ~4095);
+        void* candidate_ptr = (void*)(((unat)SH4_TCB + REI_PAGE_MASK) & ~REI_PAGE_MASK);
 
         // Call the platform-specific magic to make the pages RWX
         CodeCache = NULL;
@@ -518,7 +518,7 @@ struct recSH4 : SuperH4Backend {
         // Ensure the pointer returned is non-null
         verify(CodeCache != NULL);
 
-        memset(CodeCache, 0xFF, CODE_SIZE);
+       // memset(CodeCache, 0xFF, CODE_SIZE);
         verify(rdv_ngen->Init());
 
         bm_Reset();

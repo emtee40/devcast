@@ -223,7 +223,7 @@ void _vmem_map_handler(_vmem_handler Handler,u32 start,u32 end)
 	verify(start<=end);
 	for (u32 i=start;i<=end;i++)
 	{
-		_vmem_MemInfo_ptr[i]=((u8*)0)+(0x00000000 + Handler*4);
+		_vmem_MemInfo_ptr[i]=((u8*)0)+(0x00000000 + Handler);
 	}
 }
 
@@ -296,12 +296,12 @@ u8* virt_ram_base;
 
 void* malloc_pages(size_t size) {
 #if HOST_OS == OS_WINDOWS
-	return _aligned_malloc(size, PAGE_SIZE);
+	return _aligned_malloc(size, REI_PAGE_SIZE);
 #elif defined(_ISOC11_SOURCE)
-	return aligned_alloc(PAGE_SIZE, size);
+	return aligned_alloc(REI_PAGE_SIZE, size);
 #else
 	void *data;
-	if (posix_memalign(&data, PAGE_SIZE, size) != 0)
+	if (posix_memalign(&data, REI_PAGE_SIZE, size) != 0)
 		return NULL;
 	else
 		return data;
@@ -342,9 +342,9 @@ bool _vmem_bm_LockedWrite(u8* address) {
 
 	if (ptrint >= start && ptrint < end) {
 		// Alloc the page then and initialize it to default values
-		void *aligned_addr = (void*)(ptrint & (~PAGE_MASK));
-		vmem_platform_ondemand_page(aligned_addr, PAGE_SIZE);
-		bm_vmem_pagefill((void**)aligned_addr, PAGE_SIZE);
+		void *aligned_addr = (void*)(ptrint & (~REI_PAGE_MASK));
+		vmem_platform_ondemand_page(aligned_addr, REI_PAGE_SIZE);
+		bm_vmem_pagefill((void**)aligned_addr, REI_PAGE_SIZE);
 		return true;
 	}
 	return false;
@@ -352,7 +352,7 @@ bool _vmem_bm_LockedWrite(u8* address) {
 
 bool _vmem_reserve(VLockedMemory* mram, VLockedMemory* vram, VLockedMemory* aica_ram, u32 aram_size) {
 	// TODO: Static assert?
-	verify((sizeof(Sh4RCB)%PAGE_SIZE)==0);
+	verify((sizeof(Sh4RCB)%REI_PAGE_SIZE)==0);
 
 	VMemType vmemstatus = MemTypeError;
 

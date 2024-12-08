@@ -72,43 +72,43 @@ static __attribute((used)) void end_slice()
 
 __asm__
 (
-		".hidden ngen_LinkBlock_cond_Branch_stub	\n\t"
-		".globl ngen_LinkBlock_cond_Branch_stub		\n\t"
-	"ngen_LinkBlock_cond_Branch_stub:		\n\t"
+		// ".hidden ngen_LinkBlock_cond_Branch_stub	\n\t"
+		".globl _ngen_LinkBlock_cond_Branch_stub		\n\t"
+	"_ngen_LinkBlock_cond_Branch_stub:		\n\t"
 		"mov w1, #1							\n\t"
-		"b ngen_LinkBlock_Shared_stub		\n"
+		"b _ngen_LinkBlock_Shared_stub		\n"
 
-		".hidden ngen_LinkBlock_cond_Next_stub	\n\t"
-		".globl ngen_LinkBlock_cond_Next_stub	\n\t"
-	"ngen_LinkBlock_cond_Next_stub:			\n\t"
+		// ".hidden ngen_LinkBlock_cond_Next_stub	\n\t"
+		".globl _ngen_LinkBlock_cond_Next_stub	\n\t"
+	"_ngen_LinkBlock_cond_Next_stub:			\n\t"
 		"mov w1, #0							\n\t"
-		"b ngen_LinkBlock_Shared_stub		\n"
+		"b _ngen_LinkBlock_Shared_stub		\n"
 
-		".hidden ngen_LinkBlock_Generic_stub	\n\t"
-		".globl ngen_LinkBlock_Generic_stub	\n\t"
-	"ngen_LinkBlock_Generic_stub:			\n\t"
+		// ".hidden ngen_LinkBlock_Generic_stub	\n\t"
+		".globl _ngen_LinkBlock_Generic_stub	\n\t"
+	"_ngen_LinkBlock_Generic_stub:			\n\t"
 		"mov w1, w29						\n\t"	// djump/pc -> in case we need it ..
 		//"b ngen_LinkBlock_Shared_stub		\n"
 
-		".hidden ngen_LinkBlock_Shared_stub	\n\t"
-		".globl ngen_LinkBlock_Shared_stub	\n\t"
-	"ngen_LinkBlock_Shared_stub:			\n\t"
+		// ".hidden ngen_LinkBlock_Shared_stub	\n\t"
+		".globl _ngen_LinkBlock_Shared_stub	\n\t"
+	"_ngen_LinkBlock_Shared_stub:			\n\t"
 		"mov x0, lr							\n\t"
 		"sub x0, x0, #4						\n\t"	// go before the call
-		"bl rdv_LinkBlock					\n\t"   // returns an RX addr
+		"bl _rdv_LinkBlock					\n\t"   // returns an RX addr
 		"br x0								\n"
 
-		".hidden ngen_FailedToFindBlock_	\n\t"
-		".globl ngen_FailedToFindBlock_		\n\t"
-	"ngen_FailedToFindBlock_:				\n\t"
+		// ".hidden ngen_FailedToFindBlock_	\n\t"
+		".globl _ngen_FailedToFindBlock_		\n\t"
+	"_ngen_FailedToFindBlock_:				\n\t"
 		"mov w0, w29						\n\t"
-		"bl rdv_FailedToFindBlock			\n\t"
+		"bl _rdv_FailedToFindBlock			\n\t"
 		"br x0								\n"
 
-		".hidden ngen_blockcheckfail		\n\t"
-		".globl ngen_blockcheckfail			\n\t"
-	"ngen_blockcheckfail:					\n\t"
-		"bl rdv_BlockCheckFail				\n\t"
+		// ".hidden ngen_blockcheckfail		\n\t"
+		".globl _ngen_blockcheckfail			\n\t"
+	"_ngen_blockcheckfail:					\n\t"
+		"bl _rdv_BlockCheckFail				\n\t"
 		"br x0								\n"
 );
 
@@ -134,28 +134,29 @@ void rec_mainloop(void* v_cntx)
 		"mov w27, %[_SH4_TIMESLICE]	\n\t"
 		// w29 is next_pc
 		"ldr w29, [x28, %[pc]]		\n\t"
-		"b no_update				\n"
+		"b _no_update				\n"
 
-		".hidden intc_sched			\n\t"
-		".globl intc_sched			\n\t"
-	"intc_sched:					\n\t"
+		// ".hidden intc_sched			\n\t"
+		".globl _intc_sched			\n\t"
+	"_intc_sched:					\n\t"
 		"add w27, w27, %[_SH4_TIMESLICE]	\n\t"
 		"mov x29, lr				\n\r"	// Trashing pc here but it will be reset at the end of the block or in DoInterrupts
-		"bl UpdateSystem			\n\t"
+		"bl _UpdateSystem			\n\t"
 		"mov lr, x29				\n\t"
-		"cbnz w0, .do_interrupts	\n\t"
+		"cbnz w0, 1f 	\n\t"
 		"ret						\n"
 
 	".do_interrupts:				\n\t"
+		"1: \n\t"
 		"mov x0, x29				\n\t"
-		"bl rdv_DoInterrupts		\n\t"	// Updates next_pc based on host pc
+		"bl _rdv_DoInterrupts		\n\t"	// Updates next_pc based on host pc
 		"mov w29, w0				\n"
 
-		".hidden no_update			\n\t"
-		".globl no_update			\n\t"
-	"no_update:						\n\t"	// next_pc _MUST_ be on w29
+		// ".hidden no_update			\n\t"
+		".globl _no_update			\n\t"
+	"_no_update:						\n\t"	// next_pc _MUST_ be on w29
 		"ldr w0, [x28, %[CpuRunning]] \n\t"
-		"cbz w0, .end_mainloop		\n\t"
+		"cbz w0, 1f		\n\t"
 
 		"movz x2, %[RCB_SIZE], lsl #16	\n\t"
 		"sub x2, x28, x2			\n\t"
@@ -171,6 +172,7 @@ void rec_mainloop(void* v_cntx)
 		"br x0						\n"
 
 	".end_mainloop:					\n\t"
+	"1:					\n\t"
 		"ldp x29, x30, [sp, #144]	\n\t"
 		"ldp s12, s13, [sp, #128]	\n\t"
 		"ldp s10, s11, [sp, #112]	\n\t"
@@ -274,6 +276,7 @@ public:
 
 	void ngen_Compile(RuntimeBlockInfo* block, SmcCheckEnum smc_checks, bool reset, bool staging, bool optimise)
 	{
+		pthread_jit_write_protect_np(false);
 		//printf("REC-ARM64 compiling %08x\n", block->addr);
 #ifdef PROFILING
 		SaveFramePointer();
@@ -690,6 +693,7 @@ public:
 		RelinkBlock(block);
 
 		Finalize();
+		pthread_jit_write_protect_np(true);
 	}
 
 	void ngen_CC_Start(shil_opcode* op)
@@ -1382,12 +1386,15 @@ private:
 u32 DynaRBI::Relink()
 {
 	//printf("DynaRBI::Relink %08x\n", this->addr);
+
+	pthread_jit_write_protect_np(false);
 	Arm64Assembler *compiler = new Arm64Assembler((u8 *)this->code + this->relink_offset);
 
 	u32 code_size = compiler->RelinkBlock(this);
 	compiler->Finalize(true);
 	delete compiler;
 
+	pthread_jit_write_protect_np(true);
 	return code_size;
 }
 
@@ -1492,6 +1499,7 @@ struct Arm64NGenBackend: NGenBackend
 
 	bool Rewrite(rei_host_context_t* ctx)
 	{
+		pthread_jit_write_protect_np(false);
 		//printf("ngen_Rewrite pc %p\n", host_pc);
 		void *host_pc_rw = (void*)CC_RX2RW(ctx->pc);
 		RuntimeBlockInfo *block = bm_GetBlock((void*)ctx->pc);
@@ -1527,6 +1535,7 @@ struct Arm64NGenBackend: NGenBackend
 		delete assembler;
 		ctx->pc = (unat)CC_RW2RX(code_ptr - 2);
 
+		pthread_jit_write_protect_np(true);
 		return true;
 	}
 };

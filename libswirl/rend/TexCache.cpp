@@ -135,14 +135,14 @@ void palette_update()
 
 using namespace std;
 
-vector<vram_block*> VramLocks[VRAM_SIZE/PAGE_SIZE];
+vector<vram_block*> VramLocks[VRAM_SIZE/REI_PAGE_SIZE];
 
 //List functions
 //
 void vramlock_list_remove(vram_block* block)
 {
-	u32 base = block->start/PAGE_SIZE;
-	u32 end = block->end/PAGE_SIZE;
+	u32 base = block->start/REI_PAGE_SIZE;
+	u32 end = block->end/REI_PAGE_SIZE;
 
 	for (u32 i=base;i<=end;i++)
 	{
@@ -159,8 +159,8 @@ void vramlock_list_remove(vram_block* block)
  
 void vramlock_list_add(vram_block* block)
 {
-	u32 base = block->start/PAGE_SIZE;
-	u32 end = block->end/PAGE_SIZE;
+	u32 base = block->start/REI_PAGE_SIZE;
+	u32 end = block->end/REI_PAGE_SIZE;
 
 
 	for (u32 i=base;i<=end;i++)
@@ -241,7 +241,7 @@ bool VramLockedWrite(u8* vram, u8* address)
 	if (offset<VRAM_SIZE)
 	{
 
-		size_t addr_hash = offset/PAGE_SIZE;
+		size_t addr_hash = offset/REI_PAGE_SIZE;
 		vector<vram_block*>* list=&VramLocks[addr_hash];
 		
 		{
@@ -264,11 +264,11 @@ bool VramLockedWrite(u8* vram, u8* address)
 			list->clear();
 
 			
-			sh4_cpu->vram.UnLockRegion((u32)offset&(~(PAGE_SIZE-1)),PAGE_SIZE);
+			sh4_cpu->vram.UnLockRegion((u32)offset&(~(REI_PAGE_SIZE-1)),REI_PAGE_SIZE);
 
 			//TODO: Fix this for 32M wrap as well
 			if (_nvmem_enabled() && VRAM_SIZE == 0x800000) {
-				sh4_cpu->vram.UnLockRegion((u32)offset&(~(PAGE_SIZE-1)) + VRAM_SIZE,PAGE_SIZE);
+				sh4_cpu->vram.UnLockRegion((u32)offset&(~(REI_PAGE_SIZE-1)) + VRAM_SIZE,REI_PAGE_SIZE);
 			}
 			
 			vramlist_lock.Unlock();
@@ -291,7 +291,7 @@ void libCore_vramlock_Unlock_block(vram_block* block)
 
 void libCore_vramlock_Unlock_block_wb(vram_block* block)
 {
-		//VRAM_SIZE/PAGE_SIZE;
+		//VRAM_SIZE/REI_PAGE_SIZE;
 	if (block->end>VRAM_SIZE)
 		msgboxf("Error : block end is after vram , skipping unlock",MBX_OK);
 	else

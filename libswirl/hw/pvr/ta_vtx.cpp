@@ -1536,6 +1536,13 @@ bool ta_parse_vdrc(Renderer* renderer, u8* vram, TA_context* ctx)
 	{
 		TAFifo0.vdec_init(renderer);
 		
+		
+		FILE* tafw = nullptr; 
+		
+		// char name[32];
+        // sprintf(name, "taframe-%d.rawta", ta_parse_cnt);
+		//tafw = fopen(name, "wb");
+
 		for (int pass = 0; pass <= ctx->tad.render_pass_count; pass++)
 		{
 			ctx->MarkRend(pass);
@@ -1544,6 +1551,10 @@ bool ta_parse_vdrc(Renderer* renderer, u8* vram, TA_context* ctx)
 
 			Ta_Dma* ta_data=(Ta_Dma*)vd_rc.proc_start;
 			Ta_Dma* ta_data_end=((Ta_Dma*)vd_rc.proc_end)-1;
+
+			if (tafw != nullptr) {
+				fwrite(vd_rc.proc_start, vd_rc.proc_end - vd_rc.proc_start, 1, tafw);
+			}
 
 			do
 			{
@@ -1560,6 +1571,9 @@ bool ta_parse_vdrc(Renderer* renderer, u8* vram, TA_context* ctx)
 			render_pass->mvo_tr_count = vd_rc.global_param_mvo_tr.used();
 			render_pass->autosort = UsingAutoSort(vram, pass);
 			render_pass->z_clear = ClearZBeforePass(vram, pass);
+		}
+		if (tafw != nullptr) {
+			fclose(tafw);
 		}
 		bool empty_context = true;
 		

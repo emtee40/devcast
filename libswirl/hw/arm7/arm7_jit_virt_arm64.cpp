@@ -31,17 +31,17 @@ extern void vmem_platform_flush_cache(void *icache_start, void *icache_end, void
 
 
 const u32 ICacheSize = 1024 * 1024;
-#if HOST_OS == OS_WINDOWS
-u8 ARM7_TCB[ICacheSize + 4096];
-#elif HOST_OS == OS_LINUX
-
-u8 ARM7_TCB[ICacheSize + 4096] __attribute__((section(".text")));
-
-#elif HOST_OS==OS_DARWIN
-u8 ARM7_TCB[ICacheSize + 4096] __attribute__((section("__TEXT, .text")));
-#else
-#error ARM7_TCB ALLOC
-#endif
+//#if HOST_OS == OS_WINDOWS
+//u8 ARM7_TCB[ICacheSize + 4096];
+//#elif HOST_OS == OS_LINUX
+//
+//u8 ARM7_TCB[ICacheSize + 4096] __attribute__((section(".text")));
+//
+//#elif HOST_OS==OS_DARWIN
+//u8 ARM7_TCB[ICacheSize + 4096] __attribute__((section("__TEXT, .text")));
+//#else
+//#error ARM7_TCB ALLOC
+//#endif
 
 
 
@@ -63,12 +63,12 @@ struct Arm7JitArm7VirtBackendArm64 : Arm7VirtBackend {
     Arm7JitArm7VirtBackendArm64(ARM7Backend* arm, Arm7Context* ctx) : arm(arm), ctx(ctx) {
 
         //align to next page ..
-        ICache = (u8*)(((unat)ARM7_TCB + 4095) & ~4095);
+//        ICache = (u8*)(((unat)ARM7_TCB + 4095) & ~4095);
 
 #if HOST_OS==OS_DARWIN
         //Can't just mprotect on iOS
         munmap(ICache, ICacheSize);
-        ICache = (u8*)mmap(ICache, ICacheSize, PROT_READ | PROT_WRITE | PROT_EXEC, MAP_FIXED | MAP_PRIVATE | MAP_ANON, 0, 0);
+        ICache = (u8*)mmap(0, ICacheSize, PROT_READ | PROT_WRITE | PROT_EXEC, MAP_PRIVATE | MAP_ANON | MAP_JIT, 0, 0);
 #endif
 
 #if HOST_OS == OS_WINDOWS
@@ -76,13 +76,13 @@ struct Arm7JitArm7VirtBackendArm64 : Arm7VirtBackend {
         VirtualProtect(ICache, ICacheSize, PAGE_EXECUTE_READWRITE, &old);
 #elif HOST_OS == OS_LINUX || HOST_OS == OS_DARWIN
 
-        printf("\n\t ARM7_TCB addr: %p | from: %p | addr here: %p\n", ICache, ARM7_TCB, &ARM7Backend::singleOp);
+        printf("\n\t ARM7_TCB addr: %p | from: %p | addr here: %p\n", ICache, 0, &ARM7Backend::singleOp);
 
-        if (mprotect(ICache, ICacheSize, PROT_EXEC | PROT_READ | PROT_WRITE))
-        {
-            perror("\n\tError - Couldn't mprotect ARM7_TCB!");
-            verify(false);
-        }
+//        if (mprotect(ICache, ICacheSize, PROT_EXEC | PROT_READ | PROT_WRITE))
+//        {
+//            perror("\n\tError - Couldn't mprotect ARM7_TCB!");
+//            verify(false);
+//        }
 
 #if TARGET_IPHONE
         memset((u8*)mmap(ICache, ICacheSize, PROT_READ | PROT_WRITE | PROT_EXEC, MAP_FIXED | MAP_PRIVATE | MAP_ANON, 0, 0), 0xFF, ICacheSize);

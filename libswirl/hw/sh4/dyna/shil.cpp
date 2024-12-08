@@ -533,7 +533,7 @@ void constprop(RuntimeBlockInfo* blk)
 		{
 			//u32 baddr=blk->addr&0x0FFFFFFF;
 
-			if (/*baddr==0xC158400 &&*/ blk->addr/PAGE_SIZE == op->rs1._imm/PAGE_SIZE)
+			if (/*baddr==0xC158400 &&*/ blk->addr/REI_PAGE_SIZE == op->rs1._imm/REI_PAGE_SIZE)
 			{
 				isi[op->rd._reg]=true;
 				rv[op->rd._reg]= ReadMem32(op->rs1._imm);

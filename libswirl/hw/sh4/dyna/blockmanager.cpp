@@ -36,8 +36,8 @@ typedef set<RuntimeBlockInfo*> bm_List;
 bm_List all_blocks;
 bm_List del_blocks;
 
-bm_List page_blocks[RAM_SIZE/PAGE_SIZE];
-bool	page_has_data[RAM_SIZE/PAGE_SIZE];
+bm_List page_blocks[RAM_SIZE/REI_PAGE_SIZE];
+bool	page_has_data[RAM_SIZE/REI_PAGE_SIZE];
 
 std::map<void*, RuntimeBlockInfo*> blkmap;
 u32 bm_gc_luc,bm_gcf_luc;
@@ -129,8 +129,8 @@ void bm_AddBlock(RuntimeBlockInfo* blk, bool lockRam)
 	verify((void*)bm_GetCode(blk->addr)==(void*)rdv_ngen->FailedToFindBlock);
 	FPCA(blk->addr) = (DynarecCodeEntryPtr)CC_RW2RX(blk->code);
 
-	u32 code_ram_page_base = (blk->addr&RAM_MASK)/PAGE_SIZE;
-	u32 code_ram_page_top = ((blk->addr+blk->sh4_code_size-1)&RAM_MASK)/PAGE_SIZE;
+	u32 code_ram_page_base = (blk->addr&RAM_MASK)/REI_PAGE_SIZE;
+	u32 code_ram_page_top = ((blk->addr+blk->sh4_code_size-1)&RAM_MASK)/REI_PAGE_SIZE;
 
 	for (u32 ram_page=code_ram_page_base; ram_page<=code_ram_page_top; ram_page++)
 	{
@@ -138,7 +138,7 @@ void bm_AddBlock(RuntimeBlockInfo* blk, bool lockRam)
 
 		if (lockRam)
 		{
-			sh4_cpu->mram.LockRegion(ram_page * PAGE_SIZE, PAGE_SIZE);
+			sh4_cpu->mram.LockRegion(ram_page * REI_PAGE_SIZE, REI_PAGE_SIZE);
 		}
 	}
 
@@ -164,8 +164,8 @@ void bm_DiscardBlock(RuntimeBlockInfo* blk)
 	FPCA(blk->addr) = (DynarecCodeEntryPtr)rdv_ngen->FailedToFindBlock;
 	verify((void*)bm_GetCode(blk->addr)==(void*)rdv_ngen->FailedToFindBlock);
 
-	u32 code_ram_page_base = (blk->addr&RAM_MASK)/PAGE_SIZE;
-	u32 code_ram_page_top = ((blk->addr+blk->sh4_code_size-1)&RAM_MASK)/PAGE_SIZE;
+	u32 code_ram_page_base = (blk->addr&RAM_MASK)/REI_PAGE_SIZE;
+	u32 code_ram_page_top = ((blk->addr+blk->sh4_code_size-1)&RAM_MASK)/REI_PAGE_SIZE;
 
 	for (u32 ram_page=code_ram_page_base; ram_page<=code_ram_page_top; ram_page++)
 	{
@@ -217,9 +217,9 @@ void bm_Reset()
 	// clear page/block lists
 	memset(page_has_data, 0, sizeof(page_has_data));
 
-	for (auto i=0; i<RAM_SIZE/PAGE_SIZE; i++)
+	for (auto i=0; i<RAM_SIZE/REI_PAGE_SIZE; i++)
 	{
-		if (i * PAGE_SIZE < 65536)
+		if (i * REI_PAGE_SIZE < 65536)
 		{
 			page_has_data[i] = true;
 		}
@@ -349,8 +349,8 @@ bool bm_LockedWrite(u8* addy)
 	if (offset > 0 && offset <= 0xFFFFFFFF && IsOnRam((u32)offset))
 	{
 		u32 ram_offset = offset & RAM_MASK;
-		u32 ram_page = ram_offset / PAGE_SIZE;
-		u32 ram_obase = ram_page * PAGE_SIZE;
+		u32 ram_page = ram_offset / REI_PAGE_SIZE;
+		u32 ram_obase = ram_page * REI_PAGE_SIZE;
 
 		printf_bm("BM_LW: Pagefault @ %p %08X %08X\n", addy, ram_offset, ram_page);
 
@@ -364,7 +364,7 @@ bool bm_LockedWrite(u8* addy)
 			bm_DiscardBlock(*it);
 		}
 
-		sh4_cpu->mram.UnLockRegion(ram_obase, PAGE_SIZE);
+		sh4_cpu->mram.UnLockRegion(ram_obase, REI_PAGE_SIZE);
 
 		return true;
 	}
@@ -374,8 +374,8 @@ bool bm_LockedWrite(u8* addy)
 
 bool bm_RamPageHasData(u32 guest_addr, u32 len)
 {
-	auto page_base = (guest_addr & RAM_MASK)/PAGE_SIZE;
-	auto page_top = ((guest_addr + len - 1) & RAM_MASK)/PAGE_SIZE;
+	auto page_base = (guest_addr & RAM_MASK)/REI_PAGE_SIZE;
+	auto page_top = ((guest_addr + len - 1) & RAM_MASK)/REI_PAGE_SIZE;
 
 	bool rv = false;
 	

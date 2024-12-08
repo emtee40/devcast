@@ -61,7 +61,10 @@
     tag buffer is used to sort the pixels by tag as well as depth in order to support co-planar polygons.
 */
 
-#include <omp.h>
+// #include <omp.h>
+#include "imgui/imgui.h"
+#include "rend/gles/imgui_impl_opengl3.h"
+
 #include "hw/pvr/Renderer_if.h"
 #include "hw/pvr/pvr_mem.h"
 #include "oslib/oslib.h"
@@ -77,9 +80,10 @@
 
 #if !defined(REFSW_OFFLINE)
 #include "gui/gui.h"
-#else
-u32 decoded_colors[3][65536];
+
 #endif
+
+u32 decoded_colors[3][65536];
 
 #include <memory>
 #include <atomic>
@@ -644,6 +648,7 @@ struct refrend : Renderer
                     // clear the param buffer
                     backend->ClearParamBuffer(TAG_INVALID);
 
+                    int layers = 0;
                     do
                     {
                         // prepare for a new pass
@@ -663,7 +668,7 @@ struct refrend : Renderer
                         // render TAGS to ACCUM
                         // also marks TAGS as invalid, but keeps the index for coplanar sorting
                         backend->RenderParamTags(RM_TRANSLUCENT, rect.left, rect.top);
-                    } while (backend->GetPixelsDrawn() != 0);
+                    } while (backend->GetPixelsDrawn() != 0 && ++layers < 60);
                 }
 
                 // Copy to vram
@@ -1022,7 +1027,42 @@ struct refrend : Renderer
         XFreeGC(x11_disp, gc);
 #else
         // TODO softrend without X11 (SDL f.e.)
-    die("Softrend doesn't know how to update the screen");
+    //die("Softrend doesn't know how to update the screen");
+    // glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+
+    static GLuint image_texture = 0;
+
+    if (image_texture == 0) {
+        glGenTextures(1, &image_texture);
+    }
+    glBindTexture(GL_TEXTURE_2D, image_texture);
+
+    // Setup filtering parameters for display
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+    // Upload pixels into texture
+    glPixelStorei(GL_UNPACK_ROW_LENGTH, 0);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, SPG_CONTROL.interlace ? height * 2 : height, 0, GL_BGRA, GL_UNSIGNED_BYTE, pb.data());
+
+    glClearColor(0.0, 0.0, 0.0, 1.0);
+    glClear(GL_COLOR_BUFFER_BIT);
+    glDisable(GL_SCISSOR_TEST);
+    void ImGui_Impl_NewFrame();
+    ImGui_Impl_NewFrame();
+    ImGui::NewFrame();
+    ImGui::SetNextWindowPos(ImVec2(0.0f, 0.0f));
+    ImGui::SetNextWindowSize(ImGui::GetIO().DisplaySize);
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, { 0, 0 });
+    ImGui::Begin("RefSW output", nullptr, ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoResize);
+    ImGui::Image((ImTextureID)(intptr_t)image_texture, ImGui::GetIO().DisplaySize);
+    ImGui::End();
+    ImGui::PopStyleVar(3);
+    ImGui::Render();
+    ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+    os_gl_swap();
 #endif
     }
 };
