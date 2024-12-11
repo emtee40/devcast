@@ -7,8 +7,6 @@
 #include "ta.h"
 #include "ta_ctx.h"
 
-extern u32 ta_type_lut[256];
-
 /*
 	Threaded TA Implementation
 
@@ -88,7 +86,7 @@ u8 ta_fsm[2049];	//[2048] stores the current state
 u32 ta_fsm_cl=7;
 
 
-void fill_fsm(ta_state st, s8 pt, s8 obj, ta_state next, u32 proc=0, u32 sz64=0)
+void fill_fsm(ta_state st, s8 pt, s8 obj, ta_state next, u32 proc=0)
 {
 	for (int i=0;i<8;i++)
 	{
@@ -98,7 +96,7 @@ void fill_fsm(ta_state st, s8 pt, s8 obj, ta_state next, u32 proc=0, u32 sz64=0)
 		{
 			if (obj != -1) j=obj;
 			verify(ta_fsm[(st<<8)+(i<<5)+j]==(0x80+st));
-			ta_fsm[(st<<8)+(i<<5)+j]=next | proc*16 /*| sz64*32*/;
+			ta_fsm[(st<<8)+(i<<5)+j]=next | proc*16;
 			if (obj != -1) break;
 		}
 
@@ -106,8 +104,168 @@ void fill_fsm(ta_state st, s8 pt, s8 obj, ta_state next, u32 proc=0, u32 sz64=0)
 	}
 }
 
+//helpers 0-14
+static u32 poly_data_type_id(PCW pcw)
+{
+	if (pcw.Texture)
+	{
+		//textured
+		if (pcw.Volume==0)
+		{	//single volume
+			if (pcw.Col_Type==0)
+			{
+				if (pcw.UV_16bit==0)
+					return 3;           //(Textured, Packed Color , 32b uv)
+				else
+					return 4;           //(Textured, Packed Color , 16b uv)
+			}
+			else if (pcw.Col_Type==1)
+			{
+				if (pcw.UV_16bit==0)
+					return 5;           //(Textured, Floating Color , 32b uv)
+				else
+					return 6;           //(Textured, Floating Color , 16b uv)
+			}
+			else
+			{
+				if (pcw.UV_16bit==0)
+					return 7;           //(Textured, Intensity , 32b uv)
+				else
+					return 8;           //(Textured, Intensity , 16b uv)
+			}
+		}
+		else
+		{
+			//two volumes
+			if (pcw.Col_Type==0)
+			{
+				if (pcw.UV_16bit==0)
+					return 11;          //(Textured, Packed Color, with Two Volumes)	
+
+				else
+					return 12;          //(Textured, Packed Color, 16bit UV, with Two Volumes)
+
+			}
+			else if (pcw.Col_Type==1)
+			{
+				//die ("invalid");
+				return 0xFFFFFFFF;
+			}
+			else
+			{
+				if (pcw.UV_16bit==0)
+					return 13;          //(Textured, Intensity, with Two Volumes)	
+
+				else
+					return 14;          //(Textured, Intensity, 16bit UV, with Two Volumes)
+			}
+		}
+	}
+	else
+	{
+		//non textured
+		if (pcw.Volume==0)
+		{	//single volume
+			if (pcw.Col_Type==0)
+				return 0;               //(Non-Textured, Packed Color)
+			else if (pcw.Col_Type==1)
+				return 1;               //(Non-Textured, Floating Color)
+			else
+				return 2;               //(Non-Textured, Intensity)
+		}
+		else
+		{
+			//two volumes
+			if (pcw.Col_Type==0)
+				return 9;               //(Non-Textured, Packed Color, with Two Volumes)
+			else if (pcw.Col_Type==1)
+			{
+				//die ("invalid");
+				return 0xFFFFFFFF;
+			}
+			else
+			{
+				return 10;              //(Non-Textured, Intensity, with Two Volumes)
+			}
+		}
+	}
+}
+//0-4 | 0x80
+static u32 poly_header_type_size(PCW pcw)
+{
+	if (pcw.Volume == 0)
+	{
+		if ( pcw.Col_Type<2 ) //0,1
+		{
+			return 0  | 0;              //Polygon Type 0 -- SZ32
+		}
+		else if ( pcw.Col_Type == 2 )
+		{
+			if (pcw.Texture)
+			{
+				if (pcw.Offset)
+				{
+					return 2 | 0x80;    //Polygon Type 2 -- SZ64
+				}
+				else
+				{
+					return 1 | 0;       //Polygon Type 1 -- SZ32
+				}
+			}
+			else
+			{
+				return 1 | 0;           //Polygon Type 1 -- SZ32
+			}
+		}
+		else	//col_type ==3
+		{
+			return 0 | 0;               //Polygon Type 0 -- SZ32
+		}
+	}
+	else
+	{
+		if ( pcw.Col_Type==0 ) //0
+		{
+			return 3 | 0;              //Polygon Type 3 -- SZ32
+		}
+		else if ( pcw.Col_Type==2 ) //2
+		{
+			return 4 | 0x80;           //Polygon Type 4 -- SZ64
+		}
+		else if ( pcw.Col_Type==3 ) //3
+		{
+			return 3 | 0;              //Polygon Type 3 -- SZ32
+		}
+		else
+		{
+			return 0xFFDDEEAA;//die ("data->pcw.Col_Type==1 && volume ==1");
+		}
+	}
+}
+
+
 void fill_fsm()
 {
+	const u32 SZ32=1;
+	const u32 SZ64=2;
+	u32 ta_type_lut[256];
+	for (int i=0;i<256;i++)
+	{
+		PCW pcw;
+		pcw.obj_ctrl=i;
+		u32 rv=	poly_data_type_id(pcw);
+		u32 type= poly_header_type_size(pcw);
+
+		if (type& 0x80)
+			rv|=(SZ64<<30);
+		else
+			rv|=(SZ32<<30);
+
+		rv|=(type&0x7F)<<8;
+
+		ta_type_lut[i]=rv;
+	}
+	
 	//initialise to invalid
 	for (int i=0;i<2048;i++)
 		ta_fsm[i]=(i>>8) | 0x80;
@@ -158,8 +316,8 @@ void fill_fsm()
 					ta_state nxt = p64 ? (v64 ? TAS_PLHV64 : TAS_PLHV32) :
 										 (v64 ? TAS_PLV64  : TAS_PLV32 ) ;
 
-					fill_fsm(TAS_PLV32,i,k,nxt,0,p64);
-					fill_fsm(TAS_PLV64,i,k,nxt,0,p64);
+					fill_fsm(TAS_PLV32,i,k,nxt);
+					fill_fsm(TAS_PLV64,i,k,nxt);
 				}
 				
 
@@ -187,13 +345,13 @@ void fill_fsm()
 		case ParamType_Vertex_Parameter:
 			{
 				//VTX: 32 B -> Expect more of it
-				fill_fsm(TAS_PLV32,i,-1,TAS_PLV32,0,0);
+				fill_fsm(TAS_PLV32,i,-1,TAS_PLV32);
 
 				//VTX: 64 B -> Expect next 32B
-				fill_fsm(TAS_PLV64,i,-1,TAS_PLV64_H,0,1);
+				fill_fsm(TAS_PLV64,i,-1,TAS_PLV64_H);
 
 				//MVO: 64B -> expect next 32B
-				fill_fsm(TAS_MLV64,i,-1,TAS_MLV64_H,0,1);
+				fill_fsm(TAS_MLV64,i,-1,TAS_MLV64_H);
 
 				//invalid for NS
 			}
@@ -285,6 +443,7 @@ void ta_vtx_ListCont()
 	ta_tad.Continue();
 
 	ta_cur_state=TAS_NS;
+	ta_fsm_cl = 7;
 }
 void ta_vtx_ListInit()
 {
@@ -292,6 +451,7 @@ void ta_vtx_ListInit()
 	ta_tad.ClearPartial();
 
 	ta_cur_state=TAS_NS;
+	ta_fsm_cl = 7;
 }
 void ta_vtx_SoftReset()
 {
