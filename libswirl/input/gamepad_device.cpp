@@ -93,6 +93,11 @@ bool GamepadDevice::gamepad_btn_input(u32 code, bool pressed)
 				});
 			}
 			break;
+		case EMU_BTN_SPEED_LIMIT:
+			if (pressed) {
+				settings.aica.LimitFPS ^=1;
+			}
+			break;
 		case EMU_BTN_TRIGGER_LEFT:
 			lt[_maple_port] = pressed ? 255 : 0;
 			break;

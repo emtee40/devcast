@@ -35,6 +35,7 @@ button_list[] =
 	{ DC_DPAD2_DOWN, "dreamcast", "btn_dpad2_down" },
 	{ EMU_BTN_ESCAPE, "emulator", "btn_escape" },
 	{ EMU_BTN_MENU, "emulator", "btn_menu" },
+	{ EMU_BTN_SPEED_LIMIT, "emulator", "btn_toggle_fast" },
 	{ EMU_BTN_TRIGGER_LEFT, "compat", "btn_trigger_left" },
 	{ EMU_BTN_TRIGGER_RIGHT, "compat", "btn_trigger_right" },
 	{ EMU_BTN_STICK_LEFT, "compat", "btn_stick_left" },

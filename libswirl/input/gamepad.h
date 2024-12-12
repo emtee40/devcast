@@ -33,6 +33,7 @@ enum DreamcastKey
 	EMU_BTN_TRIGGER_LEFT	= 1 << 17,
 	EMU_BTN_TRIGGER_RIGHT	= 1 << 18,
 	EMU_BTN_MENU			= 1 << 19,
+	EMU_BTN_SPEED_LIMIT		= 1 << 24,
     EMU_BTN_STICK_LEFT     = 1 << 20,
     EMU_BTN_STICK_RIGHT    = 1 << 21,
     EMU_BTN_STICK_UP       = 1 << 22,
